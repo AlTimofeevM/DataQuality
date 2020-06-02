@@ -1,0 +1,2 @@
+class DQException(Exception):
+    pass

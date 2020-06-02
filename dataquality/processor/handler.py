@@ -51,20 +51,26 @@ class DQTransactionHandler(TransactionHandler):
                     'Invalid action: Quality already exists: {}'.format(
                         dq_payload.name))
 
-            response = requests.get(
-                'https://cryptodatum.io/api/v1/candles/?symbol=bitfinex:btcusd&type=tick&step=100&limit=1&start=1364923374000000000&end=1364948040000000000&format=json',
-                headers={'Authorization': 'CriptoDatum-API-key'},
-            )
-            json_response = response.json()
-
+            # response = requests.get(
+            #     'https://cryptodatum.io/api/v1/candles/?symbol=bitfinex:btcusd&type=tick&step=100&limit=1&start=1364923374000000000&end=1364948040000000000&format=json',
+            #     headers={'Authorization': 'CriptoDatum-API-key'},
+            # )
+            # json_response = response.json()
+            #
+            # quality = Quality(name=dq_payload.name,
+            #                 time = json_response['values'][0],
+            #                 open = json_response['values'][1],
+            #                 high = json_response['values'][2],
+            #                 low = json_response['values'][3],
+            #                 close = json_response['values'][4],
+            #                 valume = json_response['values'][5])
             quality = Quality(name=dq_payload.name,
-                            time = json_response['values'][0],
-                            open = json_response['values'][1],
-                            high = json_response['values'][2],
-                            low = json_response['values'][3],
-                            close = json_response['values'][4],
-                            valume = json_response['values'][5])
-
+                            time = 0,
+                            open = 1,
+                            high = 1,
+                            low = 1,
+                            close = 1,
+                            valume = 1)
             dq_state.set_quality(dq_payload.name, quality)
             _display("User {} created a quality.".format(signer[:6]))
 
@@ -79,12 +85,12 @@ class DQTransactionHandler(TransactionHandler):
                 raise InvalidTransaction(
                     'No data available')
 
-            newJson = requests.get(
-                'https://cryptodatum.io/api/v1/candles/?symbol=bitfinex:btcusd&type=tick&step=100&limit=1&start=' + str(quality.time + 120000000000) + '&end=1364948040000000000&format=json',
-                headers={'Authorization': 'CriptoDatum-API-key'},
-            ).json()
+            # newJson = requests.get(
+            #     'https://cryptodatum.io/api/v1/candles/?symbol=bitfinex:btcusd&type=tick&step=100&limit=1&start=' + str(quality.time + 120000000000) + '&end=1364948040000000000&format=json',
+            #     headers={'Authorization': 'CriptoDatum-API-key'},
+            # ).json()
 
-            if (bad = true):
+            if (True == True):
                 raise InvalidTransaction(
                     'Data of poor quality, recording denied')                                                                                                                           
             quality.tik = 0
