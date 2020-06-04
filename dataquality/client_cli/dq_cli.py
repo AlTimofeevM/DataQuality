@@ -11,7 +11,7 @@ import pkg_resources
 from colorlog import ColoredFormatter
 
 from dataquality.client_cli.dq_client import DQClient
-from dataquality.client_cli.dqexceptions import DQException
+from dataquality.client_cli.dq_exceptions import DQCliException
 
 
 DISTRIBUTION_NAME = 'dataquality'
@@ -307,7 +307,7 @@ def create_parser(prog_name):
     add_check_parser(subparsers, parent_parser)
     add_delete_parser(subparsers, parent_parser)
 
-    return parser\
+    return parser
 
 def do_list(args):
     url = _get_url(args)
@@ -331,7 +331,7 @@ def do_list(args):
 
             print(fmt % (name, time, open, high, low, close, volume))
     else:
-        raise DQException("Could not retrieve quality listing.")
+        raise DQCliException("Could not retrieve quality listing.")
 
 def do_show(args):
     name = args.name
@@ -363,7 +363,7 @@ def do_show(args):
         print("Volume: {}".format(volume))
         print("")
     else:
-        raise DQException("Quality not found: {}".format(name))
+        raise DQCliException("Quality not found: {}".format(name))
 
 def do_create(args):
     name = args.name
@@ -457,8 +457,11 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
         verbose_level = 0
     else:
         verbose_level = args.verbose
-
     setup_loggers(verbose_level=verbose_level)
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
 
     if args.command == 'create':
         do_create(args)
@@ -471,12 +474,12 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
     elif args.command == 'delete':
         do_delete(args)
     else:
-        raise DQException("invalid command: {}".format(args.command))
+        raise DQCliException("invalid command: {}".format(args.command))
 
 def main_wrapper():
     try:
         main()
-    except DQException as err:
+    except DQCliException as err:
         print("Error: {}".format(err), file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:

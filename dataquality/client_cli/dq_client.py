@@ -17,7 +17,10 @@ from sawtooth_sdk.protobuf.batch_pb2 import BatchList
 from sawtooth_sdk.protobuf.batch_pb2 import BatchHeader
 from sawtooth_sdk.protobuf.batch_pb2 import Batch
 
-from dataquality.client_cli.dq_exceptions import DQException
+from dataquality.client_cli.dq_exceptions import DQClientException
+
+FAMILY_NAME ="dq"
+FAMILY_VERSION ="1.0"
 
 def _sha512(data):
     return hashlib.sha512(data).hexdigest()
@@ -35,14 +38,14 @@ class DQClient:
             with open(keyfile) as fd:
                 private_key_str = fd.read().strip()
         except OSError as err:
-            raise DQException(
+            raise DQClientException(
                 'Failed to read private key {}: {}'.format(
                     keyfile, str(err)))
 
         try:
-            private_key = Secp256k1PrivateKey.from_hex(private_key_str)
+            private_key = Secp256k1PrivateKey.from_hex  (private_key_str)
         except ParseError as e:
-            raise DQException(
+            raise DQClientException(
                 'Unable to load private key: {}'.format(str(e)))
 
         self._signer = CryptoFactory(create_context('secp256k1')) \
@@ -112,7 +115,7 @@ class DQClient:
                 auth_password=auth_password)
             return yaml.safe_load(result)['data'][0]['status']
         except BaseException as err:
-            raise DQException(err)
+            raise DQClientException(err)
 
     def _get_prefix(self):
         return _sha512('dq'.encode('utf-8'))[0:6]
@@ -151,22 +154,22 @@ class DQClient:
                 result = requests.get(url, headers=headers)
 
             if result.status_code == 404:
-                raise DQException("No such game: {}".format(name))
+                raise DQClientException("No such quality: {}".format(name))
 
             if not result.ok:
-                raise DQException("Error {}: {}".format(
+                raise DQClientException("Error {}: {}".format(
                     result.status_code, result.reason))
 
         except requests.ConnectionError as err:
-            raise DQException(
+            raise DQClientException(
                 'Failed to connect to {}: {}'.format(url, str(err)))
 
         except BaseException as err:
-            raise DQException(err)
+            raise DQClientException(err)
 
         return result.text
 
-    def _send_xo_txn(self,
+    def _send_dq_txn(self,
                      name,
                      action,
                      wait=None,
@@ -180,8 +183,8 @@ class DQClient:
 
         header = TransactionHeader(
             signer_public_key=self._signer.get_public_key().as_hex(),
-            family_name="xo",
-            family_version="1.0",
+            family_name=FAMILY_NAME,
+            family_version=FAMILY_VERSION,
             inputs=[address],
             outputs=[address],
             dependencies=[],

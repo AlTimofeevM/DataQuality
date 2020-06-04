@@ -1,7 +1,8 @@
 import hashlib
+
 from sawtooth_sdk.processor.exceptions import InternalError
 
-DQ_NAMESPACE = hashlib.sha512('dataquality='.encode("utf-8")).hexdigest()[0:6]
+DQ_NAMESPACE = hashlib.sha512('dq'.encode("utf-8")).hexdigest()[0:6]
 
 def _make_dq_address(name):
     return DQ_NAMESPACE + \

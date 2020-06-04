@@ -1,4 +1,5 @@
 import requests
+import math
 import logging
 
 from sawtooth_sdk.processor.handler import TransactionHandler
@@ -13,7 +14,6 @@ from dataquality.processor.dq_state import DQ_NAMESPACE
 LOGGER = logging.getLogger(__name__)
 
 class DQTransactionHandler(TransactionHandler):
-
     @property
     def family_name(self):
         return 'dq'
@@ -51,26 +51,19 @@ class DQTransactionHandler(TransactionHandler):
                     'Invalid action: Quality already exists: {}'.format(
                         dq_payload.name))
 
-            # response = requests.get(
-            #     'https://cryptodatum.io/api/v1/candles/?symbol=bitfinex:btcusd&type=tick&step=100&limit=1&start=1364923374000000000&end=1364948040000000000&format=json',
-            #     headers={'Authorization': 'CriptoDatum-API-key'},
-            # )
-            # json_response = response.json()
-            #
-            # quality = Quality(name=dq_payload.name,
-            #                 time = json_response['values'][0],
-            #                 open = json_response['values'][1],
-            #                 high = json_response['values'][2],
-            #                 low = json_response['values'][3],
-            #                 close = json_response['values'][4],
-            #                 valume = json_response['values'][5])
+            response = requests.get(
+                'https://cryptodatum.io/api/v1/candles/?symbol=bitfinex:btcusd&type=tick&step=100&limit=1&start=1364923374000000000&end=1364948040000000000&format=json',
+                headers={'Authorization': 'CriptoDatum-API-key'},
+            )
+            json_response = response.json()
+
             quality = Quality(name=dq_payload.name,
-                            time = 0,
-                            open = 1,
-                            high = 1,
-                            low = 1,
-                            close = 1,
-                            valume = 1)
+                            time = json_response['values'][0],
+                            open = json_response['values'][1],
+                            high = json_response['values'][2],
+                            low = json_response['values'][3],
+                            close = json_response['values'][4],
+                            valume = json_response['values'][5])
             dq_state.set_quality(dq_payload.name, quality)
             _display("User {} created a quality.".format(signer[:6]))
 
@@ -85,21 +78,26 @@ class DQTransactionHandler(TransactionHandler):
                 raise InvalidTransaction(
                     'No data available')
 
-            # newJson = requests.get(
-            #     'https://cryptodatum.io/api/v1/candles/?symbol=bitfinex:btcusd&type=tick&step=100&limit=1&start=' + str(quality.time + 120000000000) + '&end=1364948040000000000&format=json',
-            #     headers={'Authorization': 'CriptoDatum-API-key'},
-            # ).json()
-
-            if (True == True):
+            newJson = requests.get(
+                'https://cryptodatum.io/api/v1/candles/?symbol=bitfinex:btcusd&type=tick&step=100&limit=1&start=' + str(quality.time + 120000000000) + '&end=1364948040000000000&format=json',
+                headers={'Authorization': 'CriptoDatum-API-key'},
+            ).json()
+            q = abs(math.log(quality.close) - math.log(newJson['values'][4]))
+            if (q >= 0.2):
                 raise InvalidTransaction(
                     'Data of poor quality, recording denied')                                                                                                                           
-            quality.tik = 0
+            else:
+                quality.time = newJson['values'][0],
+                quality.open = newJson['values'][1],
+                quality.high = newJson['values'][2],
+                quality.low = newJson['values'][3],
+                quality.close = newJson['values'][4],
+                quality.valume = newJson['values'][5]
 
             dq_state.set_quality(dq_payload.name, quality)
             _display(
-                "User {}, Data tik {}\n\n".format(
-                    signer[:6],
-                    quality.tik))
+                "User {}\n\n".format(
+                    signer[:6]))
 
         else:
             raise InvalidTransaction('Unhandled action: {}'.format(
