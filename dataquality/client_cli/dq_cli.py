@@ -324,7 +324,7 @@ def do_list(args):
 
     if quality_list is not None:
         fmt = "%-15s %-15s %-15s %-15s %-15s %-15s %s"
-        print(fmt % ('Qualoty', 'Time', 'Open', 'High', 'Low', 'Close','Volume'))
+        print(fmt % ('Quality', 'Time', 'Open', 'High', 'Low', 'Close','Volume'))
         for quality_data in quality_list:
 
             name, time, open, high, low, close, volume = quality_data
@@ -386,7 +386,7 @@ def do_create(args):
 
     print("Response: {}".format(response))
 
-def do_take(args):
+def do_check(args):
     name = args.name
 
     url = _get_url(args)
@@ -396,12 +396,12 @@ def do_take(args):
     client = DQClient(base_url=url, keyfile=keyfile)
 
     if args.wait and args.wait > 0:
-        response = client.take(
+        response = client.check(
             name,  wait=args.wait,
             auth_user=auth_user,
             auth_password=auth_password)
     else:
-        response = client.take(
+        response = client.check(
             name,
             auth_user=auth_user,
             auth_password=auth_password)
@@ -470,7 +470,7 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
     elif args.command == 'show':
         do_show(args)
     elif args.command == 'check':
-        do_take(args)
+        do_check(args)
     elif args.command == 'delete':
         do_delete(args)
     else:
